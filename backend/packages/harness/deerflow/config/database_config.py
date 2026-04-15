@@ -34,10 +34,11 @@ from __future__ import annotations
 import os
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DatabaseConfig(BaseModel):
+    model_config = ConfigDict(frozen=True)
     backend: Literal["memory", "sqlite", "postgres"] = Field(
         default="memory",
         description=("Storage backend for both checkpointer and application data. 'memory' for development (no persistence across restarts), 'sqlite' for single-node deployment, 'postgres' for production multi-node deployment."),

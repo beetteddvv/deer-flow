@@ -4,6 +4,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 from deerflow.agents.memory.storage import FileMemoryStorage, create_empty_memory
+from deerflow.config.app_config import AppConfig
+from deerflow.config.memory_config import MemoryConfig
+from deerflow.config.sandbox_config import SandboxConfig
+
+
+def _mock_app_config() -> AppConfig:
+    """Build a minimal AppConfig with default (empty) memory storage_path."""
+    return AppConfig(sandbox=SandboxConfig(use="test"), memory=MemoryConfig(storage_path=""))
 
 
 @pytest.fixture
@@ -14,6 +22,14 @@ def base_dir(tmp_path: Path) -> Path:
 @pytest.fixture
 def storage() -> FileMemoryStorage:
     return FileMemoryStorage()
+
+
+@pytest.fixture(autouse=True)
+def _mock_current_config():
+    """Ensure AppConfig.current() returns a minimal config for all tests."""
+    cfg = _mock_app_config()
+    with patch.object(AppConfig, "current", return_value=cfg):
+        yield
 
 
 class TestUserIsolatedStorage:
@@ -66,37 +82,33 @@ class TestUserIsolatedStorage:
 
     def test_no_user_id_uses_legacy_path(self, base_dir: Path):
         from deerflow.config.paths import Paths
-        from deerflow.config.memory_config import MemoryConfig
 
         paths = Paths(base_dir)
         with patch("deerflow.agents.memory.storage.get_paths", return_value=paths):
-            with patch("deerflow.agents.memory.storage.get_memory_config", return_value=MemoryConfig(storage_path="")):
-                s = FileMemoryStorage()
-                memory = create_empty_memory()
-                s.save(memory, user_id=None)
-                expected_path = base_dir / "memory.json"
-                assert expected_path.exists()
+            s = FileMemoryStorage()
+            memory = create_empty_memory()
+            s.save(memory, user_id=None)
+            expected_path = base_dir / "memory.json"
+            assert expected_path.exists()
 
     def test_user_and_legacy_do_not_interfere(self, base_dir: Path):
         """user_id=None (legacy) and user_id='alice' must use different files and caches."""
         from deerflow.config.paths import Paths
-        from deerflow.config.memory_config import MemoryConfig
 
         paths = Paths(base_dir)
         with patch("deerflow.agents.memory.storage.get_paths", return_value=paths):
-            with patch("deerflow.agents.memory.storage.get_memory_config", return_value=MemoryConfig(storage_path="")):
-                s = FileMemoryStorage()
+            s = FileMemoryStorage()
 
-                legacy_mem = create_empty_memory()
-                legacy_mem["user"]["workContext"]["summary"] = "legacy"
-                s.save(legacy_mem, user_id=None)
+            legacy_mem = create_empty_memory()
+            legacy_mem["user"]["workContext"]["summary"] = "legacy"
+            s.save(legacy_mem, user_id=None)
 
-                user_mem = create_empty_memory()
-                user_mem["user"]["workContext"]["summary"] = "alice"
-                s.save(user_mem, user_id="alice")
+            user_mem = create_empty_memory()
+            user_mem["user"]["workContext"]["summary"] = "alice"
+            s.save(user_mem, user_id="alice")
 
-                assert s.load(user_id=None)["user"]["workContext"]["summary"] == "legacy"
-                assert s.load(user_id="alice")["user"]["workContext"]["summary"] == "alice"
+            assert s.load(user_id=None)["user"]["workContext"]["summary"] == "legacy"
+            assert s.load(user_id="alice")["user"]["workContext"]["summary"] == "alice"
 
     def test_user_agent_memory_file_location(self, base_dir: Path):
         """Per-user per-agent memory uses the user_agent_memory_file path."""

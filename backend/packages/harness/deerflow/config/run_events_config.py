@@ -15,10 +15,11 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RunEventsConfig(BaseModel):
+    model_config = ConfigDict(frozen=True)
     backend: Literal["memory", "db", "jsonl"] = Field(
         default="memory",
         description="Storage backend for run events. 'memory' for development (no persistence), 'db' for production (SQL queries), 'jsonl' for lightweight single-node persistence.",
