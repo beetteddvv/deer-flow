@@ -83,6 +83,8 @@ def get_thread_id(runtime: Any | None) -> str | None:
         if thread_id:
             return thread_id
     except RuntimeError:
+        # Expected when not running inside a LangGraph runnable context (e.g., unit tests).
+        # In that case, thread_id cannot be resolved from thread-local config, so fall through.
         pass
 
     return None

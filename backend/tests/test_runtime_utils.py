@@ -45,7 +45,8 @@ class TestGetThreadId:
 
     def test_returns_none_when_get_config_raises_runtime_error(self):
         runtime = SimpleNamespace(context=None, config={})
-        assert get_thread_id(runtime) is None
+        with patch("langgraph.config.get_config", side_effect=RuntimeError):
+            assert get_thread_id(runtime) is None
 
     def test_handles_object_without_context_or_config(self):
         runtime = SimpleNamespace()

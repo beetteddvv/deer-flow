@@ -36,7 +36,9 @@ def _normalize_presented_filepath(
 
     thread_id = get_thread_id(runtime)
     if not thread_id:
-        raise ValueError("Thread ID is not available in runtime context or runtime config")
+        raise ValueError(
+            "Thread ID is not available in runtime context, runtime config, or LangGraph thread-local config"
+        )
 
     thread_data = runtime.state.get("thread_data") or {}
     outputs_path = thread_data.get("outputs_path")

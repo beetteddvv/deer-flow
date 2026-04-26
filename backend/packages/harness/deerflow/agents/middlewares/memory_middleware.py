@@ -57,10 +57,10 @@ class MemoryMiddleware(AgentMiddleware[MemoryMiddlewareState]):
         if not config.enabled:
             return None
 
-        # Get thread ID from runtime context
+        # Resolve thread ID from the runtime or configured fallback sources
         thread_id = get_thread_id(runtime)
         if not thread_id:
-            logger.debug("No thread_id in context, skipping memory update")
+            logger.debug("No thread_id could be resolved from runtime/config, skipping memory update")
             return None
 
         # Get messages from state
