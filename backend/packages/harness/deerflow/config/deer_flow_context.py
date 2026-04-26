@@ -26,6 +26,7 @@ class DeerFlowContext:
 
     app_config: AppConfig
     thread_id: str
+    run_id: str | None = None
     agent_name: str | None = None
 
 

@@ -79,7 +79,6 @@ async def run_agent(
     event_store = ctx.event_store
     run_events_config = ctx.run_events_config
     thread_store = ctx.thread_store
-    follow_up_to_run_id = ctx.follow_up_to_run_id
 
     run_id = record.run_id
     thread_id = record.thread_id
@@ -115,22 +114,6 @@ async def run_agent(
                 event_store=event_store,
                 track_token_usage=getattr(run_events_config, "track_token_usage", True),
             )
-
-            human_msg = _extract_human_message(graph_input)
-            if human_msg is not None:
-                msg_metadata = {}
-                if follow_up_to_run_id:
-                    msg_metadata["follow_up_to_run_id"] = follow_up_to_run_id
-                await event_store.put(
-                    thread_id=thread_id,
-                    run_id=run_id,
-                    event_type="human_message",
-                    category="message",
-                    content=human_msg.model_dump(),
-                    metadata=msg_metadata or None,
-                )
-                content = human_msg.content
-                journal.set_first_human_message(content if isinstance(content, str) else str(content))
 
         # 1. Mark running
         await run_manager.set_status(run_id, RunStatus.running)
@@ -174,6 +157,7 @@ async def run_agent(
         deer_flow_context = DeerFlowContext(
             app_config=ctx.app_config,
             thread_id=thread_id,
+            run_id=run_id,
         )
 
         # Inject RunJournal as a LangChain callback handler.

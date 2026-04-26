@@ -188,7 +188,7 @@ Setup: Copy `config.example.yaml` to `config.yaml` in the **project root** direc
 
 To update config at runtime (Gateway API mutations for MCP/Skills), write the new file and call `AppConfig.from_file()` to build a fresh snapshot, then swap `app.state.config`. No mtime detection, no auto-reload, no ambient ContextVar lookup (`AppConfig.current()` has been removed).
 
-**DeerFlowContext**: Per-invocation typed context for the agent execution path, injected via LangGraph `Runtime[DeerFlowContext]`. Holds `app_config: AppConfig`, `thread_id: str`, `agent_name: str | None`. Gateway runtime and `DeerFlowClient` construct full `DeerFlowContext` at invoke time; the LangGraph Server boundary builds one inside `make_lead_agent`. Middleware and tools access context through `resolve_context(runtime)` which returns the typed `DeerFlowContext` — legacy dict/None shapes are rejected. Mutable runtime state (`sandbox_id`) flows through `ThreadState.sandbox`, not context.
+**DeerFlowContext**: Per-invocation typed context for the agent execution path, injected via LangGraph `Runtime[DeerFlowContext]`. Holds `app_config: AppConfig`, `thread_id: str`, `run_id: str | None`, `agent_name: str | None`. Gateway runtime and `DeerFlowClient` construct full `DeerFlowContext` at invoke time; the LangGraph Server boundary builds one inside `make_lead_agent`. Middleware and tools access context through `resolve_context(runtime)` which returns the typed `DeerFlowContext` — legacy dict/None shapes are rejected. Mutable runtime state (`sandbox_id`) flows through `ThreadState.sandbox`, not context.
 
 Configuration priority:
 1. Explicit `config_path` argument

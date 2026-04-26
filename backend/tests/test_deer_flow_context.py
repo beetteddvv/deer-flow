@@ -24,14 +24,19 @@ class TestDeerFlowContext:
 
     def test_fields(self):
         config = _make_config()
-        ctx = DeerFlowContext(app_config=config, thread_id="t1", agent_name="test-agent")
+        ctx = DeerFlowContext(app_config=config, thread_id="t1", run_id="r1", agent_name="test-agent")
         assert ctx.thread_id == "t1"
+        assert ctx.run_id == "r1"
         assert ctx.agent_name == "test-agent"
         assert ctx.app_config is config
 
     def test_agent_name_default(self):
         ctx = DeerFlowContext(app_config=_make_config(), thread_id="t1")
         assert ctx.agent_name is None
+
+    def test_run_id_default(self):
+        ctx = DeerFlowContext(app_config=_make_config(), thread_id="t1")
+        assert ctx.run_id is None
 
     def test_thread_id_required(self):
         with pytest.raises(TypeError):
